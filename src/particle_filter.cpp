@@ -146,7 +146,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		{
 			double x_map = particles[i].x + (cos(particles[i].theta) * observations[j].x) - (sin(particles[i].theta) * observations[j].y);
 			double y_map = particles[i].y + (sin(particles[i].theta) * observations[j].x) + (cos(particles[i].theta) * observations[j].y);
-			trans_observation.push_back(LandmarkObs{ x_map, y_map, particles[i].theta });
+			trans_observation.push_back(LandmarkObs{ observations[j].id, x_map, y_map });
 		}
 		
 		// Perform association with landmarks_in_range
@@ -186,7 +186,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 		}
 	}
-	
 }
 
 void ParticleFilter::resample() {
