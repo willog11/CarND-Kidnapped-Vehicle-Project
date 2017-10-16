@@ -49,8 +49,6 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 		p.theta = sample_theta;
 		p.weight = 1;
 		particles.push_back(p);
-
-		weights.push_back(1.0F);
 	}
 	is_initialized = true;
 }
@@ -131,6 +129,16 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	// Iterate through each particle and update the observation in relation to its coordinates
 	for (int i = 0; i < num_particles; ++i)
 	{
+
+		// Need to map each observation from vehicle coordinates to map coordinates
+		vector<LandmarkObs> trans_observation;
+		for (int j = 0;j < observations.size(); ++j)
+		{
+			double x_map = particles[i].x + (cos(particles[i].theta) * observations[j].x) - (sin(particles[i].theta) * observations[j].y);
+			double y_map = particles[i].y + (sin(particles[i].theta) * observations[j].x) + (cos(particles[i].theta) * observations[j].y);
+			trans_observation.push_back(LandmarkObs{ observations[j].id, x_map, y_map });
+		}
+
 		// Iterate through each landmark and calculate which landmark is within the sensor range
 		vector<LandmarkObs> landmarks_in_range;
 		for (int j = 0;j < map_landmarks.landmark_list.size(); ++j)
@@ -142,19 +150,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			}
 		}
 		
-		// Need to map each observation from vehicle coordinates to map coordinates
-		vector<LandmarkObs> trans_observation;
-		for (int j = 0;j < observations.size(); ++j)
-		{
-			double x_map = particles[i].x + (cos(particles[i].theta) * observations[j].x) - (sin(particles[i].theta) * observations[j].y);
-			double y_map = particles[i].y + (sin(particles[i].theta) * observations[j].x) + (cos(particles[i].theta) * observations[j].y);
-			trans_observation.push_back(LandmarkObs{ observations[j].id, x_map, y_map });
-		} 
 
 		// Perform association with landmarks_in_range
 		dataAssociation(landmarks_in_range, trans_observation);
 
 		// Update weights
+		particles[i].weight = 1.0f;
 		// Loop through all transformed observations and update their weights
 		for (int j = 0;j < trans_observation.size(); ++j)
 		{
@@ -188,7 +189,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			// Update particles final weight
 			particles[i].weight *= weight;
 		}
-		weights[i] = particles[i].weight;
+
+		weights.push_back(particles[i].weight);
 
 		
 	}
@@ -230,6 +232,9 @@ void ParticleFilter::resample() {
 
 	// Reassign particles as new_particles
 	particles = new_particles;
+
+	// clear the weight vector for the next round
+	weights.clear();
 }
 
 Particle ParticleFilter::SetAssociations(Particle particle, std::vector<int> associations, std::vector<double> sense_x, std::vector<double> sense_y)
