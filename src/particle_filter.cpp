@@ -19,6 +19,9 @@
 
 using namespace std;
 
+// Static random generator to be used across multiple functions
+static default_random_engine gen;
+
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// TODO: Set the number of particles. Initialize all particles to first position (based on estimates of 
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
@@ -30,8 +33,6 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	normal_distribution<double> dist_x(x, std[0]);
 	normal_distribution<double> dist_y(y, std[1]);
 	normal_distribution<double> dist_theta(theta, std[2]);
-
-	default_random_engine gen;
 
 	for (int i = 0; i < num_particles; ++i) {
 		double sample_x, sample_y, sample_theta;
@@ -60,8 +61,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	normal_distribution<double> dist_x(0, std_pos[0]);
 	normal_distribution<double> dist_y(0, std_pos[1]);
 	normal_distribution<double> dist_theta(0, std_pos[2]);
-
-	default_random_engine gen;
 
 	// Predict new position based on odometry
 	for (int i = 0; i < num_particles; ++i) {
@@ -163,6 +162,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			double sig_x = std_landmark[0];
 			double sig_y = std_landmark[1];
 
+			// Only use transformed observation which has ID as the landmark in range
 			for (int k = 0;k < landmarks_in_range.size(); ++k)
 			{
 				if (trans_observation[j].id == landmarks_in_range[k].id)
@@ -172,6 +172,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 					break;
 				}
 			}
+
 			// Calculate normalization term
 			double gauss_norm = (1 / (2 * M_PI * sig_x * sig_y));
 
@@ -193,6 +194,40 @@ void ParticleFilter::resample() {
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
 
+	
+	// Get max weight
+	double max_weight = -1;
+	for (int i = 0; i < particles.size(); i++)
+	{
+		if (particles[i].weight > max_weight)
+			max_weight = particles[i].weight;
+	}
+
+
+	// generate random starting index for resampling wheel
+	discrete_distribution<int> discrete_dist(0, (int)particles.size() - 1);
+	int index = (int)discrete_dist(gen);
+
+	double beta = 0;
+
+	// Vector to store new particles
+	vector<Particle> new_particles;
+
+	for (int i = 0; i < particles.size(); i++)
+	{
+		beta += (int)discrete_dist(gen) * 2 * max_weight;
+
+		while (particles[index].weight < beta)
+		{
+			beta -= particles[i].weight;
+			index = (index + 1) % particles.size();
+		}
+
+		new_particles.push_back(particles[index]);
+	}
+
+	// Reassign particles as new_particles
+	particles = new_particles;
 }
 
 Particle ParticleFilter::SetAssociations(Particle particle, std::vector<int> associations, std::vector<double> sense_x, std::vector<double> sense_y)
