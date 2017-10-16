@@ -80,7 +80,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		particles[i].y += dist_y(gen);
 		particles[i].theta += dist_theta(gen);
 	}
-	cout << "PF::Prediction complete p[0] x,y,theta = " << particles[0].x <<" , " <<  particles[0].y << " , " << particles[0].theta << endl;
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
@@ -152,6 +151,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 		// Perform association with landmarks_in_range
 		dataAssociation(landmarks_in_range, trans_observation);
+
+		// reinit weight
+		particles[i].weight = 1.0;
 
 		// Update weights
 		// Loop through all transformed observations and update their weights
