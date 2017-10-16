@@ -51,7 +51,6 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 		particles.push_back(p);
 	}
 	is_initialized = true;
-	cout << "PF::init initialized, number of particles =  " << particles.size() << endl;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
@@ -81,7 +80,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		particles[i].y += dist_y(gen);
 		particles[i].theta += dist_theta(gen);
 	}
-	cout << "PF::Prediction complete" << endl;
+	cout << "PF::Prediction complete p[0 ]x,y,theta = " << particles[0].x <<  particles[0].y << particles[0].theta << endl;
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
@@ -135,12 +134,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		vector<LandmarkObs> landmarks_in_range;
 		for (int j = 0;j < map_landmarks.landmark_list.size(); ++j)
 		{
-			if (fabs(particles[i].x - map_landmarks.landmark_list[j].x_f) < sensor_range && fabs(particles[i].y - map_landmarks.landmark_list[j].y_f) < sensor_range)
+			double eucl_dist = dist(particles[i].x, particles[i].y, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f);
+			if (eucl_dist < sensor_range)
 			{
 				landmarks_in_range.push_back(LandmarkObs{ map_landmarks.landmark_list[j].id_i,map_landmarks.landmark_list[j].x_f,map_landmarks.landmark_list[j].y_f});
 			}
 		}
-
+		
 		// Need to map each observation from vehicle coordinates to map coordinates
 		vector<LandmarkObs> trans_observation;
 		for (int j = 0;j < observations.size(); ++j)
@@ -148,8 +148,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			double x_map = particles[i].x + (cos(particles[i].theta) * observations[j].x) - (sin(particles[i].theta) * observations[j].y);
 			double y_map = particles[i].y + (sin(particles[i].theta) * observations[j].x) + (cos(particles[i].theta) * observations[j].y);
 			trans_observation.push_back(LandmarkObs{ observations[j].id, x_map, y_map });
-		}
-		
+		} 
+
 		// Perform association with landmarks_in_range
 		dataAssociation(trans_observation, landmarks_in_range);
 
@@ -188,6 +188,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			particles[i].weight *= weight;
 
 		}
+		cout << "PF::UpdateWeights landmarks_in_range size =  " << landmarks_in_range.size() << endl;
+		cout << "PF::UpdateWeights trans_observation size =  " << trans_observation.size() << endl;
 	}
 	cout << "PF::UpdateWeights updated w[0] =  " << particles[0].weight << endl;
 }
