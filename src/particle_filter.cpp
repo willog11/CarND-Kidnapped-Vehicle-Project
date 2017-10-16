@@ -134,7 +134,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		for (int j = 0;j < map_landmarks.landmark_list.size(); ++j)
 		{
 			double eucl_dist = dist(particles[i].x, particles[i].y, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f);
-			if (eucl_dist < sensor_range)
+			if (eucl_dist <= sensor_range)
 			{
 				landmarks_in_range.push_back(LandmarkObs{ map_landmarks.landmark_list[j].id_i,map_landmarks.landmark_list[j].x_f,map_landmarks.landmark_list[j].y_f});
 			}
@@ -159,10 +159,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		// Loop through all transformed observations and update their weights
 		for (int j = 0;j < trans_observation.size(); ++j)
 		{
-			double x_obs = trans_observation[j].x;
-			double y_obs = trans_observation[j].y;
-			double mu_x = 0;
-			double mu_y = 0;
+			double obs_x = trans_observation[j].x;
+			double obs_y = trans_observation[j].y;
+			double lm_x = 0;
+			double lm_y = 0;
 			double sig_x = std_landmark[0];
 			double sig_y = std_landmark[1];
 
@@ -171,8 +171,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			{
 				if (trans_observation[j].id == landmarks_in_range[k].id)
 				{
-					mu_x = landmarks_in_range[k].x;
-					mu_y = landmarks_in_range[k].y;
+					lm_x = landmarks_in_range[k].x;
+					lm_y = landmarks_in_range[k].y;
 					break;
 				}
 			}
@@ -181,7 +181,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			double gauss_norm = (1 / (2 * M_PI * sig_x * sig_y));
 
 			// Calculate exponent
-			double exponent = (pow((x_obs - mu_x),2)) / (2.0 * pow(sig_x,2)) + (pow((y_obs - mu_y),2)) / (2 * pow(sig_y,2));
+			double exponent = (pow((lm_x - obs_x),2)) / (2.0 * pow(sig_x,2)) + (pow((lm_y - obs_y),2)) / (2 * pow(sig_y,2));
 
 			// Calculate weight using normalization terms and exponent - Multivariate-Gaussian Probability
 			double weight = gauss_norm * exp(-exponent);
