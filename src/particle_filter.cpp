@@ -49,6 +49,8 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 		p.theta = sample_theta;
 		p.weight = 1;
 		particles.push_back(p);
+
+		weights.push_back(1.0F);
 	}
 	is_initialized = true;
 }
@@ -152,9 +154,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		// Perform association with landmarks_in_range
 		dataAssociation(landmarks_in_range, trans_observation);
 
-		// reinit weight
-		particles[i].weight = 1.0;
-
 		// Update weights
 		// Loop through all transformed observations and update their weights
 		for (int j = 0;j < trans_observation.size(); ++j)
@@ -173,7 +172,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				{
 					lm_x = landmarks_in_range[k].x;
 					lm_y = landmarks_in_range[k].y;
-					//break;
+					break;
 				}
 			}
 
@@ -188,6 +187,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 			// Update particles final weight
 			particles[i].weight *= weight;
+			weights[i] = particles[i].weight;
 
 		}
 	}
@@ -199,16 +199,17 @@ void ParticleFilter::resample() {
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
 
-	
+
+/*
 	// Get max weight
 	double max_weight = -1;
-	for (int i = 0; i < particles.size(); i++)
+	for (int i = 0; i < weights.size(); i++)
 	{
-		if (particles[i].weight > max_weight)
-			max_weight = particles[i].weight;
+		if (weights[i] > max_weight)
+			max_weight = weights[i];
 	}
 
-
+	
 	// generate random starting index for resampling wheel
 	discrete_distribution<int> index_discrete_dist(0, num_particles - 1);
 	int index = (int)index_discrete_dist(gen);
@@ -216,22 +217,15 @@ void ParticleFilter::resample() {
 	// generate random weight for resampling wheel
 	discrete_distribution<int> weight_discrete_dist(0.0, max_weight);
 
-	double beta = 0.0;
+	double beta = 0.0;*/
 
 	// Vector to store new particles
 	vector<Particle> new_particles;
 
 	for (int i = 0; i < particles.size(); i++)
 	{
-		beta += weight_discrete_dist(gen) * 2;
-
-		while (particles[index].weight < beta)
-		{
-			beta -= particles[i].weight;
-			index = (index + 1) % particles.size();
-		}
-
-		new_particles.push_back(particles[index]);
+		discrete_distribution<int> index(weights.begin(), weights.end());
+		new_particles.push_back(particles[index(gen)]);
 	}
 
 	// Reassign particles as new_particles
