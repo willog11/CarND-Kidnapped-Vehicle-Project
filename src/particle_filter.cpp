@@ -210,8 +210,11 @@ void ParticleFilter::resample() {
 
 
 	// generate random starting index for resampling wheel
-	discrete_distribution<int> discrete_dist(0, (int)particles.size() - 1);
-	int index = (int)discrete_dist(gen);
+	discrete_distribution<int> index_discrete_dist(0, num_particles - 1);
+	int index = (int)index_discrete_dist(gen);
+
+	// generate random weight for resampling wheel
+	discrete_distribution<int> weight_discrete_dist(0.0, max_weight);
 
 	double beta = 0;
 
@@ -220,7 +223,7 @@ void ParticleFilter::resample() {
 
 	for (int i = 0; i < particles.size(); i++)
 	{
-		beta += (int)discrete_dist(gen) * 2 * max_weight;
+		beta += weight_discrete_dist(gen) * 2;
 
 		while (particles[index].weight < beta)
 		{
