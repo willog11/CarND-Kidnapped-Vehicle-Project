@@ -65,7 +65,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	// Predict new position based on odometry
 	for (int i = 0; i < num_particles; ++i) {
 
-		if (fabs(yaw_rate) > 0.00001) {
+		if (fabs(yaw_rate) >= 0.00001) {
 			particles[i].x += velocity / yaw_rate * (sin(particles[i].theta + (yaw_rate * delta_t)) - sin(particles[i].theta));
 			particles[i].y += velocity / yaw_rate * (cos(particles[i].theta) - cos(particles[i].theta + (yaw_rate * delta_t)));
 			particles[i].theta += yaw_rate * delta_t;
@@ -80,7 +80,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		particles[i].y += dist_y(gen);
 		particles[i].theta += dist_theta(gen);
 	}
-	cout << "PF::Prediction complete p[0 ]x,y,theta = " << particles[0].x <<  particles[0].y << particles[0].theta << endl;
+	cout << "PF::Prediction complete p[0] x,y,theta = " << particles[0].x <<" , " <<  particles[0].y << " , " << particles[0].theta << endl;
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
@@ -151,7 +151,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		} 
 
 		// Perform association with landmarks_in_range
-		dataAssociation(trans_observation, landmarks_in_range);
+		dataAssociation(landmarks_in_range, trans_observation);
 
 		// Update weights
 		// Loop through all transformed observations and update their weights
@@ -188,8 +188,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			particles[i].weight *= weight;
 
 		}
-		cout << "PF::UpdateWeights landmarks_in_range size =  " << landmarks_in_range.size() << endl;
-		cout << "PF::UpdateWeights trans_observation size =  " << trans_observation.size() << endl;
 	}
 	cout << "PF::UpdateWeights updated w[0] =  " << particles[0].weight << endl;
 }
