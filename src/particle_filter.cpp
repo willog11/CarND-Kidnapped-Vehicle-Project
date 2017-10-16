@@ -130,7 +130,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	for (int i = 0; i < num_particles; ++i)
 	{
 
-		// Need to map each observation from vehicle coordinates to map coordinates
+		// Step 1: Need to map each observation from vehicle coordinates to map coordinates
 		vector<LandmarkObs> trans_observation;
 		for (int j = 0;j < observations.size(); ++j)
 		{
@@ -139,7 +139,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			trans_observation.push_back(LandmarkObs{ observations[j].id, x_map, y_map });
 		}
 
-		// Iterate through each landmark and calculate which landmark is within the sensor range
+		// Step 2: Iterate through each landmark and calculate which landmark is within the sensor range
 		vector<LandmarkObs> landmarks_in_range;
 		for (int j = 0;j < map_landmarks.landmark_list.size(); ++j)
 		{
@@ -150,11 +150,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			}
 		}
 		
-
-		// Perform association with landmarks_in_range
+		// Step 3: Perform association with landmarks_in_range
 		dataAssociation(landmarks_in_range, trans_observation);
 
-		// Update weights
+		// Step 4: Update weights and calculate Multivariate-Gaussian Probability
+
+		//Re-init the particles weights
 		particles[i].weight = 1.0f;
 		// Loop through all transformed observations and update their weights
 		for (int j = 0;j < trans_observation.size(); ++j)
@@ -189,10 +190,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			// Update particles final weight
 			particles[i].weight *= weight;
 		}
-
-		weights.push_back(particles[i].weight);
-
-		
+		// Add the updated particle weight
+		weights.push_back(particles[i].weight);	
 	}
 }
 
@@ -200,26 +199,6 @@ void ParticleFilter::resample() {
 	// TODO: Resample particles with replacement with probability proportional to their weight. 
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
-
-
-/*
-	// Get max weight
-	double max_weight = -1;
-	for (int i = 0; i < weights.size(); i++)
-	{
-		if (weights[i] > max_weight)
-			max_weight = weights[i];
-	}
-
-	
-	// generate random starting index for resampling wheel
-	discrete_distribution<int> index_discrete_dist(0, num_particles - 1);
-	int index = (int)index_discrete_dist(gen);
-
-	// generate random weight for resampling wheel
-	discrete_distribution<int> weight_discrete_dist(0.0, max_weight);
-
-	double beta = 0.0;*/
 
 	// Vector to store new particles
 	vector<Particle> new_particles;
