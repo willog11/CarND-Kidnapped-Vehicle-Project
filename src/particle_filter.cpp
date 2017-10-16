@@ -173,7 +173,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				{
 					lm_x = landmarks_in_range[k].x;
 					lm_y = landmarks_in_range[k].y;
-					break;
+					//break;
 				}
 			}
 
@@ -216,7 +216,7 @@ void ParticleFilter::resample() {
 	// generate random weight for resampling wheel
 	discrete_distribution<int> weight_discrete_dist(0.0, max_weight);
 
-	double beta = 0;
+	double beta = 0.0;
 
 	// Vector to store new particles
 	vector<Particle> new_particles;
