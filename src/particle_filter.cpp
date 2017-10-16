@@ -156,7 +156,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 		// Update weights
 		// Loop through all transformed observations and update their weights
-		double mvGd = 0;
 		for (int j = 0;j < trans_observation.size(); ++j)
 		{
 			double obs_x = trans_observation[j].x;
@@ -184,12 +183,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			double exponent = (pow((obs_x - lm_x),2)) / (2.0 * pow(sig_x,2)) + (pow((obs_y - lm_y),2)) / (2 * pow(sig_y,2));
 
 			// Calculate weight using normalization terms and exponent - Multivariate-Gaussian Probability
-			mvGd *= gauss_norm * exp(-exponent);
-		}
+			double weight = gauss_norm * exp(-exponent);
 
-		// Update particles final weight
-		particles[i].weight *= mvGd;
+			// Update particles final weight
+			particles[i].weight *= weight;
+		}
 		weights[i] = particles[i].weight;
+
+		
 	}
 }
 
