@@ -51,6 +51,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 		particles.push_back(p);
 	}
 	is_initialized = true;
+	cout << "PF::init initialized, number of particles =  " << particles.size() << endl;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
@@ -80,6 +81,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		particles[i].y += dist_y(gen);
 		particles[i].theta += dist_theta(gen);
 	}
+	cout << "PF::Prediction complete" << endl;
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
@@ -187,6 +189,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 		}
 	}
+	cout << "PF::UpdateWeights updated w[0] =  " << particles[0].weight << endl;
 }
 
 void ParticleFilter::resample() {
@@ -228,6 +231,7 @@ void ParticleFilter::resample() {
 
 	// Reassign particles as new_particles
 	particles = new_particles;
+	cout << "PF::Resample complete w[0] =  " << particles[0].weight << endl;
 }
 
 Particle ParticleFilter::SetAssociations(Particle particle, std::vector<int> associations, std::vector<double> sense_x, std::vector<double> sense_y)

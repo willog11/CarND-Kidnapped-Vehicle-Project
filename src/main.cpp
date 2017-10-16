@@ -127,6 +127,7 @@ int main()
 			}
 			weight_sum += particles[i].weight;
 		  }
+		  cout << "number of particles =  " << particles.size() << endl;
 		  cout << "highest w " << highest_weight << endl;
 		  cout << "average w " << weight_sum/num_particles << endl;
 
